@@ -21,11 +21,6 @@ except Exception as e:
     st.error(str(e))
     st.stop()
 
-# ---------------- INPUT ----------------
-month = st.number_input("Time (month)", 0.0, 60.0, 12.0)
-h2s   = st.number_input("H2S (ppm)", 0.0, 100.0, 5.0)
-temp  = st.number_input("Temperature (°C)", 0.0, 50.0, 25.0)
-rh    = st.number_input("Relative Humidity (%)", 0.0, 100.0, 80.0)
 
 # ---------------- PREDICT ----------------
 if st.button("Predict"):
