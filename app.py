@@ -3,13 +3,13 @@ import numpy as np
 import joblib
 import os
 
-# -------- PAGE CONFIG --------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Surface pH Predictor", layout="centered")
 
-st.title("🧪 Surface pH Predictor")
-st.write("Enter environmental conditions to predict surface pH.")
+st.title("🧪 Surface pH Prediction System")
+st.write("Predict surface pH based on environmental conditions.")
 
-# -------- LOAD MODEL --------
+# ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_model():
     base_path = os.path.dirname(__file__)
@@ -19,18 +19,19 @@ def load_model():
 
 model, scaler = load_model()
 
-# -------- INPUTS --------
-month = st.number_input("Time (month)", 0.0, 60.0, 12.0)
-h2s = st.number_input("H2S (ppm)", 0.0, 100.0, 5.0)
-temp = st.number_input("Temperature (°C)", 0.0, 50.0, 25.0)
-rh = st.number_input("Relative Humidity (%)", 0.0, 100.0, 80.0)
+# ---------------- INPUT SECTION ----------------
+st.markdown("### Enter Parameters")
 
-# -------- PREDICTION --------
-if st.button("Predict"):
+month = st.number_input("Time (month)", min_value=0.0, max_value=60.0, value=12.0)
+h2s   = st.number_input("H₂S Concentration (ppm)", min_value=0.0, max_value=100.0, value=5.0)
+temp  = st.number_input("Temperature (°C)", min_value=0.0, max_value=50.0, value=25.0)
+rh    = st.number_input("Relative Humidity (%)", min_value=0.0, max_value=100.0, value=80.0)
+
+# ---------------- PREDICT ----------------
+if st.button("🚀 Predict Surface pH"):
 
     input_data = np.array([[month, h2s, temp, rh]])
     input_scaled = scaler.transform(input_data)
     prediction = model.predict(input_scaled)[0]
 
     st.success(f"Predicted Surface pH: {prediction:.3f}")
-
