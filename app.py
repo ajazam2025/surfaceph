@@ -1,15 +1,8 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import tensorflow as tf
+import joblib
 import os
-
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
-from sklearn.neural_network import MLPRegressor
-from sklearn.preprocessing import StandardScaler
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -18,77 +11,50 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- STYLING ----------------
 st.markdown("""
 <style>
-.big-font {
-    font-size:28px !important;
-    font-weight: bold;
+.title {
+    font-size:32px;
+    font-weight:700;
 }
-.metric-box {
-    background-color: #f4f6f9;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 22px;
+.card {
+    background-color:#f4f6f9;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+    font-size:24px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="big-font">🧪 Surface pH Prediction Dashboard</p>', unsafe_allow_html=True)
-st.write("Predict surface pH based on environmental exposure parameters.")
+st.markdown('<p class="title">🧪 Surface pH Prediction System</p>', unsafe_allow_html=True)
+st.write("Lightweight Neural Network (Deep Learning Model)")
 
-# ---------------- LOAD DATA & TRAIN ONCE ----------------
+# ---------------- LOAD MODEL ----------------
 @st.cache_resource
-def load_and_train():
+def load_model_and_scaler():
+    base_path = os.path.dirname(__file__)
+    model_path = os.path.join(base_path, "surface_ph_regressor.keras")
+    scaler_path = os.path.join(base_path, "surface_ph_scaler.joblib")
 
-    df = pd.read_csv("surface_ph_data.csv")
+    model = tf.keras.models.load_model(model_path)
+    scaler = joblib.load(scaler_path)
 
-    X = df[['Time (month)',
-            'H2S Concentration (ppm)',
-            'Temperature (C)',
-            'Relative Humidity (%)']]
+    return model, scaler
 
-    y = df['Surface PH']
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, random_state=42)
-
-    models = {}
-
-    models['SVR'] = SVR().fit(X_train, y_train)
-    models['DT'] = DecisionTreeRegressor().fit(X_train, y_train)
-    models['RF'] = RandomForestRegressor(n_estimators=50).fit(X_train, y_train)
-    models['ADB'] = AdaBoostRegressor(n_estimators=50).fit(X_train, y_train)
-    models['MLP'] = MLPRegressor(max_iter=500).fit(X_train, y_train)
-
-    # Lightweight Neural Network
-    lnn = tf.keras.Sequential([
-        tf.keras.layers.Dense(8, activation='relu', input_shape=(4,)),
-        tf.keras.layers.Dense(1)
-    ])
-    lnn.compile(optimizer='adam', loss='mse')
-    lnn.fit(X_train, y_train, epochs=20, batch_size=16, verbose=0)
-
-    models['LNN'] = lnn
-
-    return models, scaler
-
-models, scaler = load_and_train()
+model, scaler = load_model_and_scaler()
 
 # ---------------- INPUT SECTION ----------------
-st.markdown("### 🔢 Input Parameters")
+st.markdown("### 🔢 Enter Environmental Parameters")
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    month = st.slider("Time (month)", 0.0, 60.0, 10.0)
+    month = st.slider("Time (month)", 0.0, 60.0, 12.0)
 
 with col2:
-    h2s = st.slider("H2S (ppm)", 0.0, 100.0, 5.0)
+    h2s = st.slider("H₂S Concentration (ppm)", 0.0, 100.0, 5.0)
 
 with col3:
     temp = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
@@ -98,25 +64,16 @@ with col4:
 
 st.markdown("---")
 
-# ---------------- MODEL SELECTION ----------------
-selected_model = st.selectbox(
-    "Select Prediction Model",
-    ["SVR", "DT", "RF", "ADB", "MLP", "LNN"]
-)
-
 # ---------------- PREDICTION ----------------
 if st.button("🚀 Predict Surface pH"):
 
     input_data = np.array([[month, h2s, temp, rh]])
     input_scaled = scaler.transform(input_data)
 
-    if selected_model == "LNN":
-        prediction = models['LNN'].predict(input_scaled).flatten()[0]
-    else:
-        prediction = models[selected_model].predict(input_scaled)[0]
+    prediction = model.predict(input_scaled).flatten()[0]
 
     st.markdown(f"""
-    <div class="metric-box">
+    <div class="card">
         Predicted Surface pH <br><br>
         <strong>{prediction:.3f}</strong>
     </div>
