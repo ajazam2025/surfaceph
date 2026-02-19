@@ -3,35 +3,38 @@ import numpy as np
 import joblib
 import os
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Surface pH Predictor", layout="centered")
+st.set_page_config(page_title="Surface pH Predictor")
 
-st.title("🧪 Surface pH Prediction System")
-st.write("Predict surface pH based on environmental conditions.")
+st.title("Surface pH Prediction")
+
+# ---------------- DEBUG FILE CHECK ----------------
+base_path = os.path.dirname(__file__)
+files_here = os.listdir(base_path)
+st.write("Files in directory:", files_here)
 
 # ---------------- LOAD MODEL ----------------
-@st.cache_resource
-def load_model():
-    base_path = os.path.dirname(__file__)
+try:
     model = joblib.load(os.path.join(base_path, "surface_ph_model.joblib"))
     scaler = joblib.load(os.path.join(base_path, "surface_ph_scaler.joblib"))
-    return model, scaler
+except Exception as e:
+    st.error("Model loading failed.")
+    st.error(str(e))
+    st.stop()
 
-model, scaler = load_model()
-
-# ---------------- INPUT SECTION ----------------
-st.markdown("### Enter Parameters")
-
-month = st.number_input("Time (month)", min_value=0.0, max_value=60.0, value=12.0)
-h2s   = st.number_input("H₂S Concentration (ppm)", min_value=0.0, max_value=100.0, value=5.0)
-temp  = st.number_input("Temperature (°C)", min_value=0.0, max_value=50.0, value=25.0)
-rh    = st.number_input("Relative Humidity (%)", min_value=0.0, max_value=100.0, value=80.0)
+# ---------------- INPUT ----------------
+month = st.number_input("Time (month)", 0.0, 60.0, 12.0)
+h2s   = st.number_input("H2S (ppm)", 0.0, 100.0, 5.0)
+temp  = st.number_input("Temperature (°C)", 0.0, 50.0, 25.0)
+rh    = st.number_input("Relative Humidity (%)", 0.0, 100.0, 80.0)
 
 # ---------------- PREDICT ----------------
-if st.button("🚀 Predict Surface pH"):
+if st.button("Predict"):
 
-    input_data = np.array([[month, h2s, temp, rh]])
-    input_scaled = scaler.transform(input_data)
-    prediction = model.predict(input_scaled)[0]
-
-    st.success(f"Predicted Surface pH: {prediction:.3f}")
+    try:
+        input_data = np.array([[month, h2s, temp, rh]])
+        input_scaled = scaler.transform(input_data)
+        prediction = model.predict(input_scaled)[0]
+        st.success(f"Predicted Surface pH: {prediction:.3f}")
+    except Exception as e:
+        st.error("Prediction failed.")
+        st.error(str(e))
