@@ -1,95 +1,36 @@
 import streamlit as st
 import numpy as np
-import tensorflow as tf
 import joblib
 import os
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="Surface pH Predictor",
-    layout="wide",
-    page_icon="🧪"
-)
+# -------- PAGE CONFIG --------
+st.set_page_config(page_title="Surface pH Predictor", layout="centered")
 
-# ---------------- CUSTOM STYLING ----------------
-st.markdown("""
-<style>
-.main-title {
-    font-size:36px;
-    font-weight:700;
-    text-align:center;
-    margin-bottom:10px;
-}
+st.title("🧪 Surface pH Predictor")
+st.write("Enter environmental conditions to predict surface pH.")
 
-.sub-title {
-    font-size:18px;
-    text-align:center;
-    color:gray;
-    margin-bottom:30px;
-}
-
-.prediction-box {
-    background: linear-gradient(135deg, #4e73df, #1cc88a);
-    padding:30px;
-    border-radius:20px;
-    text-align:center;
-    color:white;
-    font-size:28px;
-    font-weight:600;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown('<div class="main-title">🧪 Surface pH Prediction System</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Deep Learning Model for Environmental Exposure Analysis</div>', unsafe_allow_html=True)
-
-# ---------------- LOAD MODEL ----------------
+# -------- LOAD MODEL --------
 @st.cache_resource
 def load_model():
     base_path = os.path.dirname(__file__)
-    model_path = os.path.join(base_path, "surface_ph_regressor.keras")
-    scaler_path = os.path.join(base_path, "surface_ph_scaler.joblib")
-
-    model = tf.keras.models.load_model(model_path)
-    scaler = joblib.load(scaler_path)
-
+    model = joblib.load(os.path.join(base_path, "surface_ph_model.joblib"))
+    scaler = joblib.load(os.path.join(base_path, "surface_ph_scaler.joblib"))
     return model, scaler
 
 model, scaler = load_model()
 
-# ---------------- INPUT SECTION ----------------
-st.markdown("### 🔢 Enter Environmental Parameters")
+# -------- INPUTS --------
+month = st.number_input("Time (month)", 0.0, 60.0, 12.0)
+h2s = st.number_input("H2S (ppm)", 0.0, 100.0, 5.0)
+temp = st.number_input("Temperature (°C)", 0.0, 50.0, 25.0)
+rh = st.number_input("Relative Humidity (%)", 0.0, 100.0, 80.0)
 
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    month = st.slider("Time (month)", 0.0, 60.0, 12.0)
-
-with col2:
-    h2s = st.slider("H₂S Concentration (ppm)", 0.0, 100.0, 5.0)
-
-with col3:
-    temp = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
-
-with col4:
-    rh = st.slider("Relative Humidity (%)", 0.0, 100.0, 80.0)
-
-st.markdown("---")
-
-# ---------------- PREDICTION ----------------
-if st.button("🚀 Predict Surface pH"):
+# -------- PREDICTION --------
+if st.button("Predict"):
 
     input_data = np.array([[month, h2s, temp, rh]])
     input_scaled = scaler.transform(input_data)
+    prediction = model.predict(input_scaled)[0]
 
-    prediction = model.predict(input_scaled, verbose=0).flatten()[0]
+    st.success(f"Predicted Surface pH: {prediction:.3f}")
 
-    st.markdown(
-        f"""
-        <div class="prediction-box">
-            Predicted Surface pH<br><br>
-            {prediction:.3f}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
