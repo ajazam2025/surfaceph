@@ -3,23 +3,26 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import os
 
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.neural_network import MLPRegressor
-from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, mean_squared_error
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Surface pH Predictor", layout="wide")
-st.title("Surface pH Prediction Using Machine Learning Models")
+st.title("Surface pH Prediction Using Machine Learning")
 
-# ---------------- LOAD DATA ----------------
+# ---------------- LOAD DATA (SAFE METHOD) ----------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/surface_ph_data.csv")
+    base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, "surface_ph_data.csv")
+    return pd.read_csv(file_path)
 
 df = load_data()
 
@@ -34,6 +37,7 @@ X = df[['Time (month)',
 
 y = df['Surface PH']
 
+# ---------------- SCALING ----------------
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
@@ -53,15 +57,15 @@ results = []
 
 st.subheader("Training Models...")
 
-# Train sklearn models
 for name, model in models.items():
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
     r2 = r2_score(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    cv = cross_val_score(model, X_scaled, y, cv=5).mean()
 
-    results.append([name, r2, rmse])
+    results.append([name, r2, rmse, cv])
 
 # ---------------- LIGHTWEIGHT NEURAL NETWORK ----------------
 def build_lnn():
@@ -70,11 +74,7 @@ def build_lnn():
         tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(1)
     ])
-
-    model.compile(
-        optimizer='adam',
-        loss='mse'
-    )
+    model.compile(optimizer='adam', loss='mse')
     return model
 
 lnn = build_lnn()
@@ -85,9 +85,11 @@ y_pred_lnn = lnn.predict(X_test).flatten()
 r2_lnn = r2_score(y_test, y_pred_lnn)
 rmse_lnn = np.sqrt(mean_squared_error(y_test, y_pred_lnn))
 
-results.append(["LNN", r2_lnn, rmse_lnn])
+results.append(["LNN", r2_lnn, rmse_lnn, "N/A"])
 
-results_df = pd.DataFrame(results, columns=["Model", "R2", "RMSE"])
+# ---------------- RESULTS TABLE ----------------
+results_df = pd.DataFrame(
+    results, columns=["Model", "R2", "RMSE", "CV Score"])
 
 st.success("All Models Trained Successfully")
 st.dataframe(results_df)
@@ -100,7 +102,7 @@ ax.bar(results_df["Model"], results_df["R2"])
 ax.set_ylabel("R2 Score")
 st.pyplot(fig)
 
-# ---------------- PREDICTION ----------------
+# ---------------- PREDICTION SECTION ----------------
 st.subheader("Make Prediction")
 
 col1, col2 = st.columns(2)
@@ -126,16 +128,4 @@ if st.button("Predict Surface pH"):
     if selected_model == "LNN":
         prediction = lnn.predict(input_scaled).flatten()[0]
     else:
-        model = models[selected_model]
-        prediction = model.predict(input_scaled)[0]
-
-    st.success(f"Predicted Surface pH: {prediction:.3f}")
-
-    if selected_model in ["RF", "DT", "ADB"]:
-        st.subheader("Feature Importance")
-        importance = models[selected_model].feature_importances_
-        importance_df = pd.DataFrame({
-            "Feature": X.columns,
-            "Importance": importance
-        })
-        st.bar_chart(importance_df.set_index("Feature"))
+        mo
