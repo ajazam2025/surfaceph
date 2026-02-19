@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import os
 
@@ -11,86 +10,114 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Surface pH Predictor", layout="wide")
-st.title("Surface pH Prediction Using Machine Learning")
+st.set_page_config(
+    page_title="Surface pH Predictor",
+    layout="wide",
+    page_icon="🧪"
+)
 
-# ---------------- LOAD DATA ----------------
-@st.cache_data
-def load_data():
-    base_path = os.path.dirname(__file__)
-    file_path = os.path.join(base_path, "surface_ph_data.csv")
-    return pd.read_csv(file_path)
+# ---------------- CUSTOM CSS ----------------
+st.markdown("""
+<style>
+.big-font {
+    font-size:28px !important;
+    font-weight: bold;
+}
+.metric-box {
+    background-color: #f4f6f9;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 22px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-df = load_data()
+st.markdown('<p class="big-font">🧪 Surface pH Prediction Dashboard</p>', unsafe_allow_html=True)
+st.write("Predict surface pH based on environmental exposure parameters.")
 
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
+# ---------------- LOAD DATA & TRAIN ONCE ----------------
+@st.cache_resource
+def load_and_train():
 
-# ---------------- FEATURES ----------------
-X = df[['Time (month)',
-        'H2S Concentration (ppm)',
-        'Temperature (C)',
-        'Relative Humidity (%)']]
+    df = pd.read_csv("surface_ph_data.csv")
 
-y = df['Surface PH']
+    X = df[['Time (month)',
+            'H2S Concentration (ppm)',
+            'Temperature (C)',
+            'Relative Humidity (%)']]
 
-# ---------------- SCALING ----------------
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+    y = df['Surface PH']
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X_scaled, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-# ---------------- TRAIN BUTTON ----------------
-if st.button("Train Models"):
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42)
 
-    st.write("Training... Please wait")
+    models = {}
 
-    # -------- Sklearn Models --------
-    models = {
-        'SVR': SVR(),
-        'DT': DecisionTreeRegressor(),
-        'RF': RandomForestRegressor(n_estimators=50),
-        'ADB': AdaBoostRegressor(n_estimators=50),
-        'MLP': MLPRegressor(max_iter=500)
-    }
+    models['SVR'] = SVR().fit(X_train, y_train)
+    models['DT'] = DecisionTreeRegressor().fit(X_train, y_train)
+    models['RF'] = RandomForestRegressor(n_estimators=50).fit(X_train, y_train)
+    models['ADB'] = AdaBoostRegressor(n_estimators=50).fit(X_train, y_train)
+    models['MLP'] = MLPRegressor(max_iter=500).fit(X_train, y_train)
 
-    results = []
-
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-
-        r2 = r2_score(y_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
-        results.append([name, r2, rmse])
-
-    # -------- Lightweight Neural Network --------
+    # Lightweight Neural Network
     lnn = tf.keras.Sequential([
         tf.keras.layers.Dense(8, activation='relu', input_shape=(4,)),
         tf.keras.layers.Dense(1)
     ])
-
     lnn.compile(optimizer='adam', loss='mse')
     lnn.fit(X_train, y_train, epochs=20, batch_size=16, verbose=0)
 
-    y_pred_lnn = lnn.predict(X_test).flatten()
-    r2_lnn = r2_score(y_test, y_pred_lnn)
-    rmse_lnn = np.sqrt(mean_squared_error(y_test, y_pred_lnn))
+    models['LNN'] = lnn
 
-    results.append(["LNN", r2_lnn, rmse_lnn])
+    return models, scaler
 
-    results_df = pd.DataFrame(results, columns=["Model", "R2", "RMSE"])
+models, scaler = load_and_train()
 
-    st.success("Training Completed!")
-    st.dataframe(results_df)
+# ---------------- INPUT SECTION ----------------
+st.markdown("### 🔢 Input Parameters")
 
-    # -------- Plot --------
-    fig, ax = plt.subplots()
-    ax.bar(results_df["Model"], results_df["R2"])
-    ax.set_ylabel("R2 Score")
-    st.pyplot(fig)
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    month = st.slider("Time (month)", 0.0, 60.0, 10.0)
+
+with col2:
+    h2s = st.slider("H2S (ppm)", 0.0, 100.0, 5.0)
+
+with col3:
+    temp = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
+
+with col4:
+    rh = st.slider("Relative Humidity (%)", 0.0, 100.0, 80.0)
+
+st.markdown("---")
+
+# ---------------- MODEL SELECTION ----------------
+selected_model = st.selectbox(
+    "Select Prediction Model",
+    ["SVR", "DT", "RF", "ADB", "MLP", "LNN"]
+)
+
+# ---------------- PREDICTION ----------------
+if st.button("🚀 Predict Surface pH"):
+
+    input_data = np.array([[month, h2s, temp, rh]])
+    input_scaled = scaler.transform(input_data)
+
+    if selected_model == "LNN":
+        prediction = models['LNN'].predict(input_scaled).flatten()[0]
+    else:
+        prediction = models[selected_model].predict(input_scaled)[0]
+
+    st.markdown(f"""
+    <div class="metric-box">
+        Predicted Surface pH <br><br>
+        <strong>{prediction:.3f}</strong>
+    </div>
+    """, unsafe_allow_html=True)
