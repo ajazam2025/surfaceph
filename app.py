@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -20,49 +21,39 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Background */
 .stApp {
-    background: linear-gradient(135deg, #f5f7fa, #e4ecf7);
+    background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
-/* Title */
 .main-title {
-    font-size: 42px;
-    font-weight: 800;
-    text-align: center;
-    margin-bottom: 0px;
+    font-size:42px;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:0px;
 }
 
-/* Subtitle */
 .sub-text {
-    text-align: center;
-    color: #555;
-    margin-bottom: 30px;
-    font-size: 18px;
+    text-align:center;
+    color:#555;
+    margin-bottom:25px;
 }
 
-/* Prediction card */
-.pred-card {
-    background: linear-gradient(135deg, #4e73df, #1cc88a);
-    padding: 35px;
-    border-radius: 20px;
-    text-align: center;
-    color: white;
-    font-size: 32px;
-    font-weight: 700;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+/* Prediction cards */
+.pred-box {
+    border-radius:18px;
+    padding:22px;
+    text-align:center;
+    color:white;
+    font-size:20px;
+    font-weight:700;
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
 }
 
-/* Footer */
 .footer-text {
-    text-align: center;
-    color: #666;
-    font-size: 14px;
-    margin-top: 40px;
-}
-
-.block-container {
-    padding-top: 2rem;
+    text-align:center;
+    color:#666;
+    font-size:14px;
+    margin-top:40px;
 }
 
 </style>
@@ -70,9 +61,9 @@ st.markdown("""
 
 # ================= HEADER =================
 st.markdown('<div class="main-title">🧪 Surface pH Prediction Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-text">AI-based Environmental Corrosion Assessment Tool</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-text">Multi-Model AI Prediction System</div>', unsafe_allow_html=True)
 
-# ================= TRAIN MODELS (CACHED) =================
+# ================= TRAIN ONCE =================
 @st.cache_resource
 def train_models():
 
@@ -128,31 +119,46 @@ with c4:
 
 st.markdown("---")
 
-# ================= MODEL SELECT =================
-model_name = st.selectbox(
-    "🤖 Select Prediction Model",
-    list(models.keys())
-)
-
-# ================= PREDICTION =================
-if st.button("🚀 Predict Surface pH", use_container_width=True):
+# ================= PREDICT ALL =================
+if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     X_new = np.array([[month, h2s, temp, rh]])
     X_new_scaled = scaler.transform(X_new)
 
-    pred = models[model_name].predict(X_new_scaled)[0]
+    preds = {name: model.predict(X_new_scaled)[0] for name, model in models.items()}
 
-    st.markdown(
-        f"""
-        <div class="pred-card">
-            Predicted Surface pH<br><br>
-            {pred:.3f}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # --------- BEAUTIFUL CARDS ----------
+    st.markdown("### 📊 Model Predictions")
 
-# ================= FOOTER CREDIT =================
+    colors = [
+        "#4e73df", "#1cc88a", "#36b9cc",
+        "#f6c23e", "#e74a3b", "#6f42c1"
+    ]
+
+    cols = st.columns(3)
+
+    for i, (name, value) in enumerate(preds.items()):
+        with cols[i % 3]:
+            st.markdown(
+                f"""
+                <div class="pred-box" style="background:{colors[i]};">
+                    {name}<br><br>
+                    {value:.3f}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # --------- BAR CHART ----------
+    st.markdown("### 📈 Model Comparison")
+
+    fig, ax = plt.subplots()
+    ax.bar(preds.keys(), preds.values())
+    ax.set_ylabel("Predicted Surface pH")
+    ax.set_xticklabels(preds.keys(), rotation=45)
+    st.pyplot(fig)
+
+# ================= FOOTER =================
 st.markdown(
     '<div class="footer-text">Developed by <b>Tasaduq Ismail Wani</b> • BITS Pilani</div>',
     unsafe_allow_html=True
