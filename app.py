@@ -11,7 +11,7 @@ from sklearn.neural_network import MLPRegressor
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
-    page_title="Surface pH Predictor",
+    page_title="GUI for Surface pH Predictor",
     layout="centered",
     page_icon="🧪"
 )
