@@ -9,9 +9,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.neural_network import MLPRegressor
 
-
-
-
 # ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="Surface pH Predictor",
@@ -19,27 +16,28 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ================= COMPACT BEAUTIFUL CSS =================
+# ================= BEAUTIFUL COMPACT CSS =================
 st.markdown("""
 <style>
 
-/* Tight page spacing */
+/* ⭐ FIXED TOP SPACING (important) */
 .block-container {
-    padding-top: 1rem;
+    padding-top: 2.5rem !important;
     padding-bottom: 1rem;
 }
 
-/* Background gradient */
+/* Background */
 .stApp {
     background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
-/* ⭐ Visible premium title */
+/* ⭐ TITLE — fully visible */
 .main-title {
     font-size: 32px;
     font-weight: 900;
     text-align: center;
-    margin-bottom: 2px;
+    margin-top: 0.5rem;
+    margin-bottom: 4px;
     color: #1f2a44;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
@@ -48,7 +46,7 @@ st.markdown("""
 .sub-text {
     text-align: center;
     color: #4a5568;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     font-size: 14px;
 }
 
@@ -129,7 +127,7 @@ with c2:
 
 st.markdown("")
 
-# ================= PREDICT BUTTON =================
+# ================= PREDICT =================
 if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     X_new = np.array([[month, h2s, temp, rh]])
@@ -142,7 +140,6 @@ if st.button("🚀 Predict Using All Models", use_container_width=True):
         "#f6c23e", "#e74a3b", "#6f42c1"
     ]
 
-    # ⭐ two-column compact grid
     colA, colB = st.columns(2)
     items = list(preds.items())
 
