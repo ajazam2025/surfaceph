@@ -16,36 +16,63 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ================= CUSTOM CSS =================
+# ================= BEAUTIFUL CSS =================
 st.markdown("""
 <style>
-.main-title {
-    font-size: 40px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 5px;
+
+/* Background */
+.stApp {
+    background: linear-gradient(135deg, #f5f7fa, #e4ecf7);
 }
+
+/* Title */
+.main-title {
+    font-size: 42px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 0px;
+}
+
+/* Subtitle */
 .sub-text {
     text-align: center;
-    color: gray;
-    margin-bottom: 25px;
+    color: #555;
+    margin-bottom: 30px;
+    font-size: 18px;
 }
+
+/* Prediction card */
 .pred-card {
-    background: linear-gradient(135deg,#4e73df,#1cc88a);
-    padding: 30px;
-    border-radius: 18px;
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    padding: 35px;
+    border-radius: 20px;
     text-align: center;
     color: white;
-    font-size: 30px;
-    font-weight: bold;
+    font-size: 32px;
+    font-weight: 700;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
+
+/* Footer */
+.footer-text {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-top: 40px;
+}
+
+.block-container {
+    padding-top: 2rem;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
+# ================= HEADER =================
 st.markdown('<div class="main-title">🧪 Surface pH Prediction Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-text">Machine Learning Based Environmental Corrosion Assessment</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-text">AI-based Environmental Corrosion Assessment Tool</div>', unsafe_allow_html=True)
 
-# ================= TRAIN ONCE =================
+# ================= TRAIN MODELS (CACHED) =================
 @st.cache_resource
 def train_models():
 
@@ -82,8 +109,8 @@ def train_models():
 
 models, scaler = train_models()
 
-# ================= INPUT SECTION =================
-st.markdown("### 🔢 Input Parameters")
+# ================= INPUT PANEL =================
+st.markdown("### 🔢 Input Environmental Parameters")
 
 c1, c2, c3, c4 = st.columns(4)
 
@@ -125,6 +152,8 @@ if st.button("🚀 Predict Surface pH", use_container_width=True):
         unsafe_allow_html=True
     )
 
-# ================= FOOTER =================
-st.markdown("---")
-st.caption("Developed for Surface Corrosion Assessment using Machine Learning")
+# ================= FOOTER CREDIT =================
+st.markdown(
+    '<div class="footer-text">Developed by <b>Tasaduq Ismail Wani</b> • BITS Pilani</div>',
+    unsafe_allow_html=True
+)
