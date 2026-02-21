@@ -70,7 +70,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================= HEADER =================
-st.markdown('<div class="main-title">🧪 Surface pH Predictor</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🧪 GUI for Surface pH Predictor</div>', unsafe_allow_html=True)
 
 # ================= TRAIN MODELS =================
 @st.cache_resource
