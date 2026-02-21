@@ -12,7 +12,7 @@ from sklearn.neural_network import MLPRegressor
 # ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="Surface pH Predictor",
-    layout="wide",
+    layout="centered",  # ⭐ portrait friendly
     page_icon="🧪"
 )
 
@@ -24,8 +24,9 @@ st.markdown("""
     background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
+/* Title */
 .main-title {
-    font-size:42px;
+    font-size:34px;
     font-weight:800;
     text-align:center;
     margin-bottom:0px;
@@ -37,33 +38,34 @@ st.markdown("""
     margin-bottom:25px;
 }
 
-/* Prediction cards */
+/* Cards full width for portrait */
 .pred-box {
-    border-radius:18px;
-    padding:24px;
+    border-radius:16px;
+    padding:22px;
     text-align:center;
     color:white;
-    font-size:20px;
+    font-size:22px;
     font-weight:700;
-    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+    margin-bottom:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.15);
 }
 
 /* Footer */
 .footer-text {
     text-align:center;
     color:#666;
-    font-size:14px;
-    margin-top:40px;
+    font-size:13px;
+    margin-top:30px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ================= HEADER =================
-st.markdown('<div class="main-title">🧪 Surface pH Prediction Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-text">Multi-Model AI Environmental Assessment Tool</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🧪 Surface pH Prediction</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-text">Multi-Model AI Environmental Assessment</div>', unsafe_allow_html=True)
 
-# ================= TRAIN MODELS (CACHED) =================
+# ================= TRAIN MODELS =================
 @st.cache_resource
 def train_models():
 
@@ -100,22 +102,13 @@ def train_models():
 
 models, scaler = train_models()
 
-# ================= INPUT PANEL =================
-st.markdown("### 🔢 Input Environmental Parameters")
+# ================= INPUT SECTION (STACKED) =================
+st.markdown("### 🔢 Enter Parameters")
 
-c1, c2, c3, c4 = st.columns(4)
-
-with c1:
-    month = st.slider("Time (month)", 0.0, 60.0, 12.0)
-
-with c2:
-    h2s = st.slider("H₂S (ppm)", 0.0, 100.0, 5.0)
-
-with c3:
-    temp = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
-
-with c4:
-    rh = st.slider("Relative Humidity (%)", 0.0, 100.0, 80.0)
+month = st.slider("Time (month)", 0.0, 60.0, 12.0)
+h2s   = st.slider("H₂S Concentration (ppm)", 0.0, 100.0, 5.0)
+temp  = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
+rh    = st.slider("Relative Humidity (%)", 0.0, 100.0, 80.0)
 
 st.markdown("---")
 
@@ -127,26 +120,23 @@ if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     preds = {name: model.predict(X_new_scaled)[0] for name, model in models.items()}
 
-    st.markdown("### 📊 Model Predictions")
+    st.markdown("### 📊 Predictions")
 
     colors = [
         "#4e73df", "#1cc88a", "#36b9cc",
         "#f6c23e", "#e74a3b", "#6f42c1"
     ]
 
-    cols = st.columns(3)
-
     for i, (name, value) in enumerate(preds.items()):
-        with cols[i % 3]:
-            st.markdown(
-                f"""
-                <div class="pred-box" style="background:{colors[i]};">
-                    {name}<br><br>
-                    {value:.3f}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        st.markdown(
+            f"""
+            <div class="pred-box" style="background:{colors[i]};">
+                {name}<br>
+                {value:.3f}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # ================= FOOTER =================
 st.markdown(
