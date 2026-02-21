@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -17,7 +16,7 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ================= BEAUTIFUL CSS =================
+# ================= PREMIUM CSS =================
 st.markdown("""
 <style>
 
@@ -41,7 +40,7 @@ st.markdown("""
 /* Prediction cards */
 .pred-box {
     border-radius:18px;
-    padding:22px;
+    padding:24px;
     text-align:center;
     color:white;
     font-size:20px;
@@ -49,6 +48,7 @@ st.markdown("""
     box-shadow:0 8px 20px rgba(0,0,0,0.15);
 }
 
+/* Footer */
 .footer-text {
     text-align:center;
     color:#666;
@@ -61,9 +61,9 @@ st.markdown("""
 
 # ================= HEADER =================
 st.markdown('<div class="main-title">🧪 Surface pH Prediction Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-text">Multi-Model AI Prediction System</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-text">Multi-Model AI Environmental Assessment Tool</div>', unsafe_allow_html=True)
 
-# ================= TRAIN ONCE =================
+# ================= TRAIN MODELS (CACHED) =================
 @st.cache_resource
 def train_models():
 
@@ -119,7 +119,7 @@ with c4:
 
 st.markdown("---")
 
-# ================= PREDICT ALL =================
+# ================= PREDICT =================
 if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     X_new = np.array([[month, h2s, temp, rh]])
@@ -127,7 +127,6 @@ if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     preds = {name: model.predict(X_new_scaled)[0] for name, model in models.items()}
 
-    # --------- BEAUTIFUL CARDS ----------
     st.markdown("### 📊 Model Predictions")
 
     colors = [
@@ -148,15 +147,6 @@ if st.button("🚀 Predict Using All Models", use_container_width=True):
                 """,
                 unsafe_allow_html=True
             )
-
-    # --------- BAR CHART ----------
-    st.markdown("### 📈 Model Comparison")
-
-    fig, ax = plt.subplots()
-    ax.bar(preds.keys(), preds.values())
-    ax.set_ylabel("Predicted Surface pH")
-    ax.set_xticklabels(preds.keys(), rotation=45)
-    st.pyplot(fig)
 
 # ================= FOOTER =================
 st.markdown(
