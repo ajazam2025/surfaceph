@@ -12,21 +12,28 @@ from sklearn.neural_network import MLPRegressor
 # ================= PAGE CONFIG =================
 st.set_page_config(
     page_title="Surface pH Predictor",
-    layout="centered",  # ⭐ portrait friendly
+    layout="centered",
     page_icon="🧪"
 )
 
-# ================= PREMIUM CSS =================
+# ================= COMPACT CSS =================
 st.markdown("""
 <style>
 
+/* Reduce top spacing */
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Background */
 .stApp {
     background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
 /* Title */
 .main-title {
-    font-size:34px;
+    font-size:30px;
     font-weight:800;
     text-align:center;
     margin-bottom:0px;
@@ -35,27 +42,28 @@ st.markdown("""
 .sub-text {
     text-align:center;
     color:#555;
-    margin-bottom:25px;
+    margin-bottom:12px;
+    font-size:14px;
 }
 
-/* Cards full width for portrait */
+/* Compact cards */
 .pred-box {
-    border-radius:16px;
-    padding:22px;
+    border-radius:14px;
+    padding:16px;
     text-align:center;
     color:white;
-    font-size:22px;
+    font-size:18px;
     font-weight:700;
-    margin-bottom:14px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.15);
+    margin-bottom:10px;
+    box-shadow:0 5px 14px rgba(0,0,0,0.12);
 }
 
 /* Footer */
 .footer-text {
     text-align:center;
     color:#666;
-    font-size:13px;
-    margin-top:30px;
+    font-size:12px;
+    margin-top:10px;
 }
 
 </style>
@@ -88,9 +96,9 @@ def train_models():
 
     models = {
         "SVR": SVR(),
-        "Decision Tree": DecisionTreeRegressor(),
-        "Random Forest": RandomForestRegressor(n_estimators=50, random_state=42),
-        "AdaBoost": AdaBoostRegressor(n_estimators=50, random_state=42),
+        "DT": DecisionTreeRegressor(),
+        "RF": RandomForestRegressor(n_estimators=50, random_state=42),
+        "ADB": AdaBoostRegressor(n_estimators=50, random_state=42),
         "MLP": MLPRegressor(hidden_layer_sizes=(32,16), max_iter=500, random_state=42),
         "LNN": MLPRegressor(hidden_layer_sizes=(16,), max_iter=500, random_state=42),
     }
@@ -102,41 +110,48 @@ def train_models():
 
 models, scaler = train_models()
 
-# ================= INPUT SECTION (STACKED) =================
-st.markdown("### 🔢 Enter Parameters")
+# ================= INPUTS (COMPACT 2x2) =================
+c1, c2 = st.columns(2)
 
-month = st.slider("Time (month)", 0.0, 60.0, 12.0)
-h2s   = st.slider("H₂S Concentration (ppm)", 0.0, 100.0, 5.0)
-temp  = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
-rh    = st.slider("Relative Humidity (%)", 0.0, 100.0, 80.0)
+with c1:
+    month = st.slider("Time (month)", 0.0, 60.0, 12.0)
+    temp  = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
 
-st.markdown("---")
+with c2:
+    h2s = st.slider("H₂S (ppm)", 0.0, 100.0, 5.0)
+    rh  = st.slider("Humidity (%)", 0.0, 100.0, 80.0)
+
+st.markdown("")
 
 # ================= PREDICT =================
-if st.button("🚀 Predict Using All Models", use_container_width=True):
+if st.button("🚀 Predict", use_container_width=True):
 
     X_new = np.array([[month, h2s, temp, rh]])
     X_new_scaled = scaler.transform(X_new)
 
     preds = {name: model.predict(X_new_scaled)[0] for name, model in models.items()}
 
-    st.markdown("### 📊 Predictions")
-
     colors = [
         "#4e73df", "#1cc88a", "#36b9cc",
         "#f6c23e", "#e74a3b", "#6f42c1"
     ]
 
-    for i, (name, value) in enumerate(preds.items()):
-        st.markdown(
-            f"""
-            <div class="pred-box" style="background:{colors[i]};">
-                {name}<br>
-                {value:.3f}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # ⭐ 2-column grid (fits screen)
+    colA, colB = st.columns(2)
+
+    items = list(preds.items())
+
+    for i, (name, value) in enumerate(items):
+        target_col = colA if i % 2 == 0 else colB
+        with target_col:
+            st.markdown(
+                f"""
+                <div class="pred-box" style="background:{colors[i]};">
+                    {name}<br>{value:.3f}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 # ================= FOOTER =================
 st.markdown(
