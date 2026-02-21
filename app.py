@@ -16,64 +16,67 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ================= COMPACT CSS =================
+# ================= COMPACT BEAUTIFUL CSS =================
 st.markdown("""
 <style>
 
-/* Reduce top spacing */
+/* Tight page spacing */
 .block-container {
     padding-top: 1rem;
     padding-bottom: 1rem;
 }
 
-/* Background */
+/* Background gradient */
 .stApp {
     background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
-/* Title */
+/* ⭐ Visible premium title */
 .main-title {
-    font-size:30px;
-    font-weight:800;
-    text-align:center;
-    margin-bottom:0px;
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 2px;
+    color: #1f2a44;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
+/* Subtitle */
 .sub-text {
-    text-align:center;
-    color:#555;
-    margin-bottom:12px;
-    font-size:14px;
+    text-align: center;
+    color: #4a5568;
+    margin-bottom: 12px;
+    font-size: 14px;
 }
 
-/* Compact cards */
+/* Prediction cards */
 .pred-box {
-    border-radius:14px;
-    padding:16px;
-    text-align:center;
-    color:white;
-    font-size:18px;
-    font-weight:700;
-    margin-bottom:10px;
-    box-shadow:0 5px 14px rgba(0,0,0,0.12);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    box-shadow: 0 5px 14px rgba(0,0,0,0.12);
 }
 
 /* Footer */
 .footer-text {
-    text-align:center;
-    color:#666;
-    font-size:12px;
-    margin-top:10px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    margin-top: 10px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ================= HEADER =================
-st.markdown('<div class="main-title">🧪 Surface pH Prediction</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🧪 Surface pH Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-text">Multi-Model AI Environmental Assessment</div>', unsafe_allow_html=True)
 
-# ================= TRAIN MODELS =================
+# ================= TRAIN MODELS (CACHED) =================
 @st.cache_resource
 def train_models():
 
@@ -110,7 +113,7 @@ def train_models():
 
 models, scaler = train_models()
 
-# ================= INPUTS (COMPACT 2x2) =================
+# ================= COMPACT INPUT GRID =================
 c1, c2 = st.columns(2)
 
 with c1:
@@ -123,8 +126,8 @@ with c2:
 
 st.markdown("")
 
-# ================= PREDICT =================
-if st.button("🚀 Predict", use_container_width=True):
+# ================= PREDICT BUTTON =================
+if st.button("🚀 Predict Using All Models", use_container_width=True):
 
     X_new = np.array([[month, h2s, temp, rh]])
     X_new_scaled = scaler.transform(X_new)
@@ -136,9 +139,8 @@ if st.button("🚀 Predict", use_container_width=True):
         "#f6c23e", "#e74a3b", "#6f42c1"
     ]
 
-    # ⭐ 2-column grid (fits screen)
+    # ⭐ two-column compact grid
     colA, colB = st.columns(2)
-
     items = list(preds.items())
 
     for i, (name, value) in enumerate(items):
