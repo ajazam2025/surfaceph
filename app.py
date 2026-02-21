@@ -16,41 +16,33 @@ st.set_page_config(
     page_icon="🧪"
 )
 
-# ================= BEAUTIFUL COMPACT CSS =================
+# ================= CSS =================
 st.markdown("""
 <style>
-
-/* ⭐ FIXED TOP SPACING (important) */
 .block-container {
-    padding-top: 2.5rem !important;
+    padding-top: 2.2rem !important;
     padding-bottom: 1rem;
 }
 
-/* Background */
 .stApp {
     background: linear-gradient(135deg,#f5f7fa,#e4ecf7);
 }
 
-/* ⭐ TITLE — fully visible */
 .main-title {
     font-size: 32px;
     font-weight: 900;
     text-align: center;
-    margin-top: 0.5rem;
     margin-bottom: 4px;
     color: #1f2a44;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
-/* Subtitle */
 .sub-text {
     text-align: center;
     color: #4a5568;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
     font-size: 14px;
 }
 
-/* Prediction cards */
 .pred-box {
     border-radius: 14px;
     padding: 16px;
@@ -62,14 +54,12 @@ st.markdown("""
     box-shadow: 0 5px 14px rgba(0,0,0,0.12);
 }
 
-/* Footer */
 .footer-text {
     text-align: center;
     color: #666;
     font-size: 12px;
-    margin-top: 10px;
+    margin-top: 12px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -77,7 +67,7 @@ st.markdown("""
 st.markdown('<div class="main-title">🧪 Surface pH Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-text">Multi-Model AI Environmental Assessment</div>', unsafe_allow_html=True)
 
-# ================= TRAIN MODELS (CACHED) =================
+# ================= TRAIN MODELS =================
 @st.cache_resource
 def train_models():
 
@@ -94,7 +84,7 @@ def train_models():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, _, y_train, _ = train_test_split(
         X_scaled, y, test_size=0.2, random_state=42
     )
 
@@ -114,26 +104,25 @@ def train_models():
 
 models, scaler = train_models()
 
-# ================= COMPACT INPUT GRID =================
-c1, c2 = st.columns(2)
+# ================= SIDEBAR INPUTS =================
+st.sidebar.header("🔢 Input Parameters")
 
-with c1:
-    month = st.slider("Time (month)", 0.0, 60.0, 12.0)
-    temp  = st.slider("Temperature (°C)", 0.0, 50.0, 25.0)
+month = st.sidebar.slider("Time (month)", 0.0, 60.0, 12.0)
+h2s   = st.sidebar.slider("H₂S (ppm)", 0.0, 100.0, 5.0)
+temp  = st.sidebar.slider("Temperature (°C)", 0.0, 50.0, 25.0)
+rh    = st.sidebar.slider("Humidity (%)", 0.0, 100.0, 80.0)
 
-with c2:
-    h2s = st.slider("H₂S (ppm)", 0.0, 100.0, 5.0)
-    rh  = st.slider("Humidity (%)", 0.0, 100.0, 80.0)
+predict_clicked = st.sidebar.button("🚀 Predict")
 
-st.markdown("")
-
-# ================= PREDICT =================
-if st.button("🚀 Predict Using All Models", use_container_width=True):
+# ================= PREDICTION =================
+if predict_clicked:
 
     X_new = np.array([[month, h2s, temp, rh]])
     X_new_scaled = scaler.transform(X_new)
 
     preds = {name: model.predict(X_new_scaled)[0] for name, model in models.items()}
+
+    st.markdown("### 📊 Model Predictions")
 
     colors = [
         "#4e73df", "#1cc88a", "#36b9cc",
