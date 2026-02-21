@@ -1,19 +1,13 @@
-# Surface pH Prediction Web App
+# Surface pH Prediction App
 
-Machine Learning models used:
+This Streamlit application predicts surface pH using a trained machine learning model.
 
-- SVR
-- Decision Tree
-- Random Forest
-- AdaBoost
-- MLP
-- Lightweight Neural Network (TensorFlow)
+## Inputs
+- Time (month)
+- H2S Concentration (ppm)
+- Temperature (°C)
+- Relative Humidity (%)
 
 ## Run locally
-
-pip install -r requirements.txt
+pip install -r requirements.txt  
 streamlit run app.py
-
-## Deployment
-
-Deploy directly on Streamlit Cloud.
